@@ -48,6 +48,11 @@ The one link the code still needs is to the built PCRTM, which `PREFIRE_ATM/dist
 From the bundle root. The build records these absolute paths, and `determine_prdgit.py` checks that the two records agree, so build in the place the bundle will run from (rebuild after moving it):
 
 ```sh
+# determine_prdgit.py looks for a .git folder in each package, but git gives submodules a .git file, and the
+# product would then record "unknown" code versions. Move each submodule's git folder into the submodule:
+git submodule foreach -q 'd=$(git rev-parse --absolute-git-dir); git config --unset core.worktree; rm .git; mv "$d" .git'
+
+unset MAKEFLAGS    # build serially: PCRTM's makefiles break under parallel make (see below)
 B=$PWD
 cd $B/PREFIRE_PCRTM_V3.4/GENERIC
 make gfortran LIBRARY_DIR=$B/PREFIRE_PCRTM_V3.4/lib INCLUDE_DIR=$B/PREFIRE_PCRTM_V3.4/include
@@ -64,7 +69,7 @@ ln -s ../../PREFIRE_PCRTM_V3.4 PREFIRE_ATM/source/PREFIRE_PCRTM_V3.4
 (cd PREFIRE_ATM/dist && unzip /path/to/PREFIRE_SRFs-v13_2024-09-15.zip)
 ```
 
-Pass `LIBRARY_DIR` and `INCLUDE_DIR` on the command line as shown: their defaults in `GENERIC/makefile` point into the home folder. The first `make gfortran` prints a series of "Error 127 (ignored)" lines before the real compile; they are harmless. The build gives `PREFIRE_PCRTM_V3.4/lib/libPCRTM.a` and `PREFIRE_pyPCRTM/pyPCRTM/PCRTM_wrapper_module.so`, all ignored by the submodules' `.gitignore` files.
+Pass `LIBRARY_DIR` and `INCLUDE_DIR` on the command line as shown: their defaults in `GENERIC/makefile` point into the home folder. Build serially: `GENERIC/SRC/make.dependencies` does not match the object names in `GENERIC/SRC/Makefile`, so with `make -j` (or `-j` in `MAKEFLAGS`) Fortran modules can be compiled before the modules they use. `GENERIC/makefile` does not pass such a failure on, so it shows up only later, when the pyPCRTM build stops with "Cannot open module file 'init_pcrtm.mod'". A good build leaves 23 `.mod` files and `build_provenance.txt` in `PREFIRE_PCRTM_V3.4/include`. The first `make gfortran` prints a series of "Error 127 (ignored)" lines before the real compile; they are harmless. The build gives `PREFIRE_PCRTM_V3.4/lib/libPCRTM.a` and `PREFIRE_pyPCRTM/pyPCRTM/PCRTM_wrapper_module.so`, all ignored by the submodules' `.gitignore` files.
 
 Optional check of the build, PREFIRE_pyPCRTM's own tests (each prints "Success!"; they do not need the missing file):
 
@@ -107,5 +112,7 @@ python PREFIRE_PRD_GEN/dist/produce_PRD.py
 ```
 
 `PCRTM_INPUT_DIR` must end with `/`. The run is single-threaded by design and takes about 50 CPU-minutes per orbit. To finish sooner, run several frame ranges at once, each with its own `ATRACK_IDX_RANGE_0BI` (for example `...:0:5722`, `...:5723:5899`, `...:5900:6082` and `...:6083:END` for this orbit, balanced by the number of retrievals); step 2 then merges every raw file that starts with the `INPUT_FPATH_OR_FPREFIX` prefix. Each process needs about 1.0 to 1.3 GB of memory.
+
+Checked on 2026-10-25 from a fresh `git clone --recurse-submodules` on x86-64 Linux, without `UWiremis_labeigvects.nc`: the build, PREFIRE_pyPCRTM's tests and both `determine_prdgit.py` steps work, and `produce_L2.py` then stops at the import of `hsremis` with `FileNotFoundError` for the missing file, so no product could be made or compared. An earlier test of the same R01 code, with that one import disabled, reproduced the official ASDC R01 2B-ATM granule for SAT2 orbit 02040: the same 5,444 footprints retrieved, identical quality flags, and temperatures within 3.05e-5 K.
 
 The author's own test, `PREFIRE_ATM/test/run.sh`, runs step 1 on frames 6000 to 6020 of the SAT2 orbit above. It expects PCRTM and its tables under `PREFIRE_ATM/dist/subpackages/`, reads its inputs from `PREFIRE_ATM/test/inputs/`, and calls `determine_prdgit.py` itself.
