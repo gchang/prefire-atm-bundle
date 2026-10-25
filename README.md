@@ -88,6 +88,8 @@ PCRTM_INPUT_DIR=/path/to/pcrtm/INPUTDIR/ python test_jacobian_run.py
 cd ../..
 ```
 
+`test_forward_run.py` now and then fails with "non-finite values detected in krad_esurf" (or `kbt_esurf`): it also checks the Jacobian arrays, which it does not request, so they hold leftover memory (`PCRTM_fwrappers.py` allocates them with `np.empty`). That is a test problem, not a build problem; run it again.
+
 ## Running one orbit
 
 The mission makes 2B-ATM in two steps: `PREFIRE_ATM` writes a raw file for the orbit, then `PREFIRE_PRD_GEN` finalizes it into the archived product (polar frames only, with the archive's metadata). From the bundle root, once `UWiremis_labeigvects.nc` is in place:
