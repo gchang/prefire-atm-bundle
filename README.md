@@ -15,7 +15,7 @@ The `PREFIRE_sim_tools` submodule is https://github.com/gchang/prefire-sim-tools
 | `PREFIRE_ATM` | https://github.com/UW-PREFIRE/PREFIRE_ATM | 75981c4f9c8c3561bedd2aeead6601c007999474 (R01) | the 2B-ATM product code (`dist/produce_L2.py`) |
 | `PREFIRE_pyPCRTM` | https://github.com/UW-PREFIRE/PREFIRE_pyPCRTM | f19294e232af20dbd496c10f868e843b2f83b2a6 (R01) | Python wrapper and Fortran adapter for PCRTM |
 | `PREFIRE_PCRTM_V3.4` | https://github.com/UW-PREFIRE/PREFIRE_PCRTM_V3.4 | 046b309756ed7a2831346f5a1aa180e2206486b9 (R01) | the PCRTM v3.4 radiative transfer model (Fortran) |
-| `PREFIRE_sim_tools` | https://github.com/gchang/prefire-sim-tools (copy of https://github.com/UW-PREFIRE/PREFIRE_sim_tools R01) | bcbdd0b5e4d87090f505c4627b7b06d9f6f766b3 (R01.post1) | spectral response functions and emissivity mapping |
+| `PREFIRE_sim_tools` | https://github.com/gchang/prefire-sim-tools (copy of https://github.com/UW-PREFIRE/PREFIRE_sim_tools R01) | 5bcf206c9fef3e7737551ed1f026ebce4e21df05 (R01.post2) | spectral response functions and emissivity mapping |
 | `PREFIRE_PRD_GEN` | https://github.com/UW-PREFIRE/PREFIRE_PRD_GEN | e3933a389894d1af081b3d0bbac4aa0eb27019bc (R01) | NetCDF read and write helpers, and the finalization step |
 | `PREFIRE_tools` | https://github.com/UW-PREFIRE/PREFIRE_tools | 3b590a6eba09ce596e193ad1e04f636a8b7c3d58 (R01) | utilities used by the finalization step |
 
