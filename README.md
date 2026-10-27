@@ -1,27 +1,25 @@
 # PREFIRE_ATM bundle
 
-The PREFIRE 2B-ATM product retrieves temperature and water vapor profiles, surface temperature and column water vapor for clear polar footprints of the PREFIRE TIRS spectrometers, by optimal estimation with the PCRTM radiative transfer model. The code is split across six repositories from the PREFIRE mission team (UW-PREFIRE). This repository holds them side by side as git submodules, each pinned to its `R01` release, so the whole algorithm can be cloned in one step:
+The PREFIRE 2B-ATM product retrieves temperature and water vapor profiles, surface temperature and column water vapor for clear polar footprints of the PREFIRE TIRS spectrometers, by optimal estimation with the PCRTM radiative transfer model. The code is split across six repositories from the PREFIRE mission team (UW-PREFIRE). This repository holds them side by side as git submodules, each at its `R01` release (PREFIRE_sim_tools as a fixed copy of R01, see below), so the whole algorithm can be cloned in one step:
 
 ```sh
 git clone --recurse-submodules https://github.com/gchang/prefire-atm-bundle.git
 ```
 
-## A required file is not public
+## PREFIRE_sim_tools is a fixed copy of R01
 
-**`PREFIRE_sim_tools/PREFIRE_sim_tools/utils/UWiremis_labeigvects.nc` is required and is not publicly available.** `PREFIRE_ATM` imports `PREFIRE_sim_tools.utils`, whose `__init__.py` (line 4) imports `hsremis`, and `hsremis.py` (line 20) opens this file as soon as it is imported. The file is left out of the PREFIRE_sim_tools repository by its own `.gitignore` (`*.nc`, line 79), it is in none of that repository's public commits, it is not in the R01 public code archive on Zenodo (record 17088937), and we found no other source. Without it, `dist/produce_L2.py` stops at the import with `FileNotFoundError` before reading any input. 2B-ATM never calls the code in `hsremis.py`, so the file does not affect the results; it is needed only because the import happens at load time.
+The `PREFIRE_sim_tools` submodule is https://github.com/gchang/prefire-sim-tools, a copy of UW-PREFIRE's R01 (`9cf1bec`) with one line removed: `PREFIRE_sim_tools/utils/__init__.py` no longer imports `hsremis` when the package loads. `hsremis.py` opens `UWiremis_labeigvects.nc` as soon as it is imported, and that file is not public (the repository's `.gitignore` excludes `*.nc`, and it is not in the R01 code archive on Zenodo, record 17088937). With the upstream R01, `PREFIRE_ATM/dist/produce_L2.py` therefore stopped at import with `FileNotFoundError` before reading any input, although 2B-ATM never calls `hsremis`. With the copy it runs, the file is not needed, and the results do not change. The copy's `MAAP_CHANGES.md` describes the change.
 
-The check run behind this bundle never had the file either: it got past the import only by disabling that one import line in a local copy of PREFIRE_sim_tools, which this bundle does not do. To run the bundle as it stands, get `UWiremis_labeigvects.nc` from the PREFIRE mission team (UW-PREFIRE) and put it in `PREFIRE_sim_tools/PREFIRE_sim_tools/utils/`, where the `*.nc` rule in `.gitignore` keeps the submodule clean. This bundle does not include or redistribute the file.
-
-| Submodule | Upstream | R01 commit | Role |
+| Submodule | Repository | Commit | Role |
 |---|---|---|---|
-| `PREFIRE_ATM` | https://github.com/UW-PREFIRE/PREFIRE_ATM | 75981c4f9c8c3561bedd2aeead6601c007999474 | the 2B-ATM product code (`dist/produce_L2.py`) |
-| `PREFIRE_pyPCRTM` | https://github.com/UW-PREFIRE/PREFIRE_pyPCRTM | f19294e232af20dbd496c10f868e843b2f83b2a6 | Python wrapper and Fortran adapter for PCRTM |
-| `PREFIRE_PCRTM_V3.4` | https://github.com/UW-PREFIRE/PREFIRE_PCRTM_V3.4 | 046b309756ed7a2831346f5a1aa180e2206486b9 | the PCRTM v3.4 radiative transfer model (Fortran) |
-| `PREFIRE_sim_tools` | https://github.com/UW-PREFIRE/PREFIRE_sim_tools | 9cf1becfbd4ffab850766bcf828c3ec0364d2ef0 | spectral response functions and emissivity mapping (needs the file above) |
-| `PREFIRE_PRD_GEN` | https://github.com/UW-PREFIRE/PREFIRE_PRD_GEN | e3933a389894d1af081b3d0bbac4aa0eb27019bc | NetCDF read and write helpers, and the finalization step |
-| `PREFIRE_tools` | https://github.com/UW-PREFIRE/PREFIRE_tools | 3b590a6eba09ce596e193ad1e04f636a8b7c3d58 | utilities used by the finalization step |
+| `PREFIRE_ATM` | https://github.com/UW-PREFIRE/PREFIRE_ATM | 75981c4f9c8c3561bedd2aeead6601c007999474 (R01) | the 2B-ATM product code (`dist/produce_L2.py`) |
+| `PREFIRE_pyPCRTM` | https://github.com/UW-PREFIRE/PREFIRE_pyPCRTM | f19294e232af20dbd496c10f868e843b2f83b2a6 (R01) | Python wrapper and Fortran adapter for PCRTM |
+| `PREFIRE_PCRTM_V3.4` | https://github.com/UW-PREFIRE/PREFIRE_PCRTM_V3.4 | 046b309756ed7a2831346f5a1aa180e2206486b9 (R01) | the PCRTM v3.4 radiative transfer model (Fortran) |
+| `PREFIRE_sim_tools` | https://github.com/gchang/prefire-sim-tools (copy of https://github.com/UW-PREFIRE/PREFIRE_sim_tools R01) | bcbdd0b5e4d87090f505c4627b7b06d9f6f766b3 (R01.post1) | spectral response functions and emissivity mapping |
+| `PREFIRE_PRD_GEN` | https://github.com/UW-PREFIRE/PREFIRE_PRD_GEN | e3933a389894d1af081b3d0bbac4aa0eb27019bc (R01) | NetCDF read and write helpers, and the finalization step |
+| `PREFIRE_tools` | https://github.com/UW-PREFIRE/PREFIRE_tools | 3b590a6eba09ce596e193ad1e04f636a8b7c3d58 (R01) | utilities used by the finalization step |
 
-Nothing inside the submodules is changed. All six are MIT-licensed by the PREFIRE Mission Team; see each submodule's LICENSE. The official ASDC R01 2B-ATM products report `PREFIRE_ATM 1.0.1`, the version in `PREFIRE_ATM/VERSION.txt` at this commit.
+Apart from that one line in PREFIRE_sim_tools, nothing inside the submodules is changed. All six are MIT-licensed by the PREFIRE Mission Team; see each submodule's LICENSE. The official ASDC R01 2B-ATM products report `PREFIRE_ATM 1.0.1`, the version in `PREFIRE_ATM/VERSION.txt` at this commit.
 
 ## Finding the sibling packages
 
@@ -44,7 +42,7 @@ The one link the code still needs is to the built PCRTM, which `PREFIRE_ATM/dist
 
   `pyhdf`, also in `conda_env.list`, is not imported by the run and is left out.
 - The Makefiles of `PREFIRE_PCRTM_V3.4` and `PREFIRE_pyPCRTM` use x86-64-v3 instruction flags (AVX2, FMA). They build as they are on a current x86-64 CPU. On other CPUs (for example arm64), those flags must be removed, as the comments in both Makefiles say.
-- `UWiremis_labeigvects.nc`: see above. Not public.
+- `UWiremis_labeigvects.nc` is not needed (see above).
 - PCRTM coefficient tables: `PREFIRE_PCRTM_V3.4-large_ancillary_data-1.zip` (3.5 GB, MIT) from Zenodo record 16694725 (https://zenodo.org/records/16694725). 2B-ATM uses only four of its members (205 MB), the tables for PCRTM sensor 2. Extract them into a folder whose path, with a trailing `/`, is **shorter than 120 characters**: PCRTM keeps the path in a 120-character Fortran string and silently cuts off anything longer, and the run then stops with "Cannot open file" on a mangled path.
 - Spectral response functions: `PREFIRE_SRFs-v13_2024-09-15.zip` (11.6 MB, MIT) from Zenodo record 16638853 (https://zenodo.org/records/16638853), unzipped inside `PREFIRE_ATM/dist/`, which puts the two SRF files in `PREFIRE_ATM/dist/ancillary/` (the code reads them from there).
 - Inputs per orbit, from NASA LaRC ASDC (Earthdata login): the PREFIRE 1B-RAD granule, the matching AUX-MET granule, and the matching **final** 2B-MSK and 2B-SFC granules (the archived products), about 99 MB together. Collections `PREFIRE_SAT2_1B-RAD`, `PREFIRE_SAT2_AUX-MET`, `PREFIRE_SAT2_2B-MSK`, `PREFIRE_SAT2_2B-SFC` (and the same for SAT1), version R01.
@@ -78,7 +76,7 @@ ln -s ../../PREFIRE_PCRTM_V3.4 PREFIRE_ATM/source/PREFIRE_PCRTM_V3.4
 
 Pass `LIBRARY_DIR` and `INCLUDE_DIR` on the command line as shown: their defaults in `GENERIC/makefile` point into the home folder. Build serially: `GENERIC/SRC/make.dependencies` does not match the object names in `GENERIC/SRC/Makefile`, so with `make -j` (or `-j` in `MAKEFLAGS`) Fortran modules can be compiled before the modules they use. `GENERIC/makefile` does not pass such a failure on, so it shows up only later, when the pyPCRTM build stops with "Cannot open module file 'init_pcrtm.mod'". A good build leaves 23 `.mod` files and `build_provenance.txt` in `PREFIRE_PCRTM_V3.4/include`. The first `make gfortran` prints a series of "Error 127 (ignored)" lines before the real compile; they are harmless. The build gives `PREFIRE_PCRTM_V3.4/lib/libPCRTM.a` and `PREFIRE_pyPCRTM/pyPCRTM/PCRTM_wrapper_module.so`, all ignored by the submodules' `.gitignore` files.
 
-Optional check of the build, PREFIRE_pyPCRTM's own tests (each prints "Success!"; they do not need the missing file):
+Optional check of the build, PREFIRE_pyPCRTM's own tests (each prints "Success!"):
 
 ```sh
 source bundle_env.sh
@@ -92,7 +90,7 @@ cd ../..
 
 ## Running one orbit
 
-The mission makes 2B-ATM in two steps: `PREFIRE_ATM` writes a raw file for the orbit, then `PREFIRE_PRD_GEN` finalizes it into the archived product (polar frames only, with the archive's metadata). From the bundle root, once `UWiremis_labeigvects.nc` is in place:
+The mission makes 2B-ATM in two steps: `PREFIRE_ATM` writes a raw file for the orbit, then `PREFIRE_PRD_GEN` finalizes it into the archived product (polar frames only, with the archive's metadata). From the bundle root:
 
 ```sh
 source bundle_env.sh

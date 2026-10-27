@@ -6,7 +6,7 @@
 	url = https://github.com/UW-PREFIRE/PREFIRE_PRD_GEN.git
 [submodule "PREFIRE_sim_tools"]
 	path = PREFIRE_sim_tools
-	url = https://github.com/UW-PREFIRE/PREFIRE_sim_tools.git
+	url = https://github.com/gchang/prefire-sim-tools.git
 [submodule "PREFIRE_pyPCRTM"]
 	path = PREFIRE_pyPCRTM
 	url = https://github.com/UW-PREFIRE/PREFIRE_pyPCRTM.git
